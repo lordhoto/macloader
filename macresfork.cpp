@@ -188,9 +188,9 @@ bool ResourceFork::loadInternal(uint32 startOffset) {
 				if (j != idCount - 1)
 					fseek(_file, lastIDPos, SEEK_SET);
 
-				printf("%c%c%c%c %04x - %s\n", _types[i].tag >> 24, (_types[i].tag >> 16) & 0xff, (_types[i].tag >> 8) & 0xff, _types[i].tag & 0xff, id.id, id.filename.c_str());
-			} else
-				printf("%c%c%c%c %04x\n", _types[i].tag >> 24, (_types[i].tag >> 16) & 0xff, (_types[i].tag >> 8) & 0xff, _types[i].tag & 0xff, id.id); 
+				//printf("%c%c%c%c %04x - %s\n", _types[i].tag >> 24, (_types[i].tag >> 16) & 0xff, (_types[i].tag >> 8) & 0xff, _types[i].tag & 0xff, id.id, id.filename.c_str());
+			} /*else
+				printf("%c%c%c%c %04x\n", _types[i].tag >> 24, (_types[i].tag >> 16) & 0xff, (_types[i].tag >> 8) & 0xff, _types[i].tag & 0xff, id.id); */
 
 			_types[i].ids.push_back(id);
 		}
@@ -198,8 +198,6 @@ bool ResourceFork::loadInternal(uint32 startOffset) {
 		if (i != typeCount - 1)
 			fseek(_file, lastTypePos, SEEK_SET);
 	}
-	
-	printf("\n\n\n\n");
 
 	return true;
 }
