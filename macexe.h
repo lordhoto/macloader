@@ -32,29 +32,95 @@ struct JumpTableEntry {
 	byte rawData[8];
 };
 
+/**
+ * The Code 0 segment of a Macintosh m68k executable.
+ */
 class Code0Segment {
 public:
+	/**
+	 * Load a Code 0 segment.
+	 *
+	 * @param pair The resource data to load from.
+	 * @throws std::exception Errors on loading.
+	 */
 	Code0Segment(const DataPair &pair) throw(std::exception);
 
+	/**
+	 * Output information about the segment header.
+	 *
+	 * @param out The stream to output to.
+	 */
 	void outputHeader(std::ostream &out) throw();
+
+	/**
+	 * Output information about the jump table.
+	 *
+	 * @param out The stream to output to.
+	 */
 	void outputJumptable(std::ostream &out) throw();
 private:
+	/**
+	 * The jump table vector.
+	 */
 	typedef std::vector<JumpTableEntry> JumpTable;
+
+	/**
+	 * The jump table of the segment.
+	 */
 	JumpTable _jumpTable;
 
+	/**
+	 * Size above the A5 offset in bytes.
+	 * This should equal _jumpTableSize + _jumpTableOffset.
+	 * @see _jumpTableSize
+	 * @see _jumpTableOffset
+	 */
 	uint32 _sizeAboveA5;
+
+	/**
+	 * The size of the executable's globale variables.
+	 */
 	uint32 _applicationGlobalsSize;
+
+	/**
+	 * The raw size of the jump table.
+	 */
 	uint32 _jumpTableSize;
+
+	/**
+	 * The offset from a5 of the jump table.
+	 */
 	uint32 _jumpTableOffset;
 };
 
+/**
+ * Object representing a Macintosh m68k executable.
+ */
 class Executable {
 public:
+	/**
+	 * Initial load of an executable from a file.
+	 *
+	 * @param filename The file where to load from.
+	 * @throws std::exception Errors on loading.
+	 */
 	Executable(const std::string &filename) throw(std::exception);
 
+	/**
+	 * Output information about the loaded file.
+	 *
+	 * @param out The stream where to output to.
+	 */
 	void outputInfo(std::ostream &out) throw();
 private:
+	/**
+	 * The resource fork data.
+	 */
 	ResourceFork _resFork;
+
+	/**
+	 * The Code 0 segment.
+	 */
 	std::auto_ptr<Code0Segment> _code0;
 };
 

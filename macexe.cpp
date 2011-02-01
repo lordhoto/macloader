@@ -28,10 +28,13 @@ const uint32 kCodeTag = 0x434F4445;
 
 Executable::Executable(const std::string &filename) throw(std::exception)
     : _resFork(), _code0() {
+	// Try to load the resource fork of the given file
 	if (!_resFork.load(filename.c_str()))
 		throw std::runtime_error("Could not load file " + filename);
 
+	// Initialize the Code 0 segment
 	DataPair *data = _resFork.getResource(kCodeTag, 0);
+	// In case no Code 0 segment is present it is definitly no valid executable
 	if (data == nullptr)
 		throw std::runtime_error("File " + filename + " does not contain any CODE 0 segment");
 
@@ -53,21 +56,24 @@ void Executable::outputInfo(std::ostream &out) throw() {
 
 Code0Segment::Code0Segment(const DataPair &data) throw(std::exception)
     : _jumpTable(), _sizeAboveA5(0), _applicationGlobalsSize(0), _jumpTableSize(0), _jumpTableOffset(0) {
+	// A valid Code 0 segment must have at least the header + 1 jump table entry
 	if (data.length < 24)
 		throw std::runtime_error("CODE 0 segment contains only " + boost::lexical_cast<std::string>(data.length) + " bytes");
 
+	// Read the header
 	_sizeAboveA5 = READ_UINT32_BE(data.data + 0);
 	_applicationGlobalsSize = READ_UINT32_BE(data.data + 4);
 	_jumpTableSize = READ_UINT32_BE(data.data + 8);
 	_jumpTableOffset = READ_UINT32_BE(data.data + 12);
 
+	// Validate the header fields
 	if (_jumpTableSize % 8 != 0)
 		throw std::runtime_error("CODE 0 segment has invalid jump table size " + boost::lexical_cast<std::string>(_jumpTableSize));
 	if (_sizeAboveA5 != _jumpTableSize + _jumpTableOffset)
 		throw std::runtime_error("CODE 0 segment has invalid above a5 size " + boost::lexical_cast<std::string>(_sizeAboveA5));
 
+	// Load the jump table
 	_jumpTable.resize(_jumpTableSize / 8);
-
 	for (uint offset = 0, i = 0; offset < _jumpTableSize; offset += 8, ++i) {
 		JumpTableEntry entry;
 		std::memcpy(entry.rawData, data.data + 16 + offset, 8);
