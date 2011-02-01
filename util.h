@@ -49,4 +49,12 @@ void writeUint32BE(FILE *file, uint32 x);
 
 uint32 getFileSize(FILE *file);
 
+const int nullptr = 0;
+
+template<class T>
+inline void destroy(T *&t) {
+	delete t;
+	t = 0;
+}
+
 #endif
