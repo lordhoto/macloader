@@ -140,6 +140,11 @@ private:
 	 * Number of exported functions in the jump table.
 	 */
 	uint16 _jumpTableEntries;
+
+	/**
+	 * The segment data.
+	 */
+	DataPair _data;
 };
 
 /**

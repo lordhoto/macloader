@@ -123,7 +123,7 @@ void Code0Segment::outputJumptable(std::ostream &out) throw() {
 }
 
 CodeSegment::CodeSegment(const Code0Segment &code0, const uint id, const std::string &name, const DataPair &data) throw(std::exception)
-    : _id(id), _name(name), _jumpTableOffset(0), _jumpTableEntries(0) {
+    : _id(id), _name(name), _jumpTableOffset(0), _jumpTableEntries(0), _data(data) {
 	// A valid code segment must at least contain the header data
 	if (data.length < 4)
 		throw std::runtime_error("CODE segment contains only " + boost::lexical_cast<std::string>(data.length) + " bytes");

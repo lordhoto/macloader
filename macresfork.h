@@ -24,6 +24,7 @@
 
 #include <string>
 #include <vector>
+#include <cstring>
 #include "util.h"
 
 struct ResourceForkID {
@@ -44,6 +45,9 @@ struct ResourceForkType {
 
 struct DataPair {
 	DataPair(byte *d, uint32 l) { data = d; length = l; }
+	DataPair(const DataPair &d) : data(new byte[d.length]), length(d.length) {
+		std::memcpy(data, d.data, d.length);
+	}
 	~DataPair() { delete[] data; }
 
 	byte *data;
