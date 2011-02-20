@@ -101,10 +101,13 @@ public:
 	/**
 	 * Load a Code segment.
 	 *
+	 * @param code0 The code 0 segement.
+	 * @param id The id of the code segment.
+	 * @param name The name of the code segment.
 	 * @param pair The resource data to load from.
 	 * @throws std::exception Errors on loading.
 	 */
-	CodeSegment(const Code0Segment &code0, const DataPair &pair) throw(std::exception);
+	CodeSegment(const Code0Segment &code0, const uint id, const std::string &name, const DataPair &pair) throw(std::exception);
 
 	/**
 	 * Output information about the segment header.
@@ -113,6 +116,16 @@ public:
 	 */
 	void outputHeader(std::ostream &out) throw();
 private:
+	/**
+	 * The id of the segment.
+	 */
+	const uint _id;
+
+	/**
+	 * The name of the segment.
+	 */
+	const std::string _name;
+
 	/**
 	 * Offset into the jump table.
 	 */
