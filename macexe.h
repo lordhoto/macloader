@@ -58,6 +58,11 @@ public:
 	 * @param out The stream to output to.
 	 */
 	void outputJumptable(std::ostream &out) throw();
+
+	/**
+	 * Query the size of the jump table.
+	 */
+	uint32 getJumpTableSize() const { return _jumpTableSize; }
 private:
 	/**
 	 * The jump table vector.

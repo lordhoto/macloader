@@ -131,6 +131,14 @@ CodeSegment::CodeSegment(const Code0Segment &code0, const uint id, const std::st
 	// Read the header
 	_jumpTableOffset = READ_UINT16_BE(data.data + 0);
 	_jumpTableEntries = READ_UINT16_BE(data.data + 2);
+
+	// Validate the data
+	if (_jumpTableOffset % 8 != 0)
+		throw std::runtime_error("CODE segment has invalid jump table offset " + boost::lexical_cast<std::string>(_jumpTableOffset));
+	if (_jumpTableOffset >= code0.getJumpTableSize())
+		throw std::runtime_error("CODE segment specifies offset " + boost::lexical_cast<std::string>(_jumpTableOffset) + " into jump table, but the CODE0 jump table only has size " + boost::lexical_cast<std::string>(code0.getJumpTableSize()));
+	if ((uint32)(_jumpTableOffset + _jumpTableEntries * 8) > code0.getJumpTableSize())
+		throw std::runtime_error("CODE segment specifies " + boost::lexical_cast<std::string>(_jumpTableEntries) + " entries but the CODE0 jump table only contains " + boost::lexical_cast<std::string>((code0.getJumpTableSize() - _jumpTableOffset) / 8) + " entries after the jump table entry offset");
 }
 
 void CodeSegment::outputHeader(std::ostream &out) throw() {
