@@ -94,6 +94,37 @@ private:
 };
 
 /**
+ * Any code segement different to CODE 0
+ */
+class CodeSegment {
+public:
+	/**
+	 * Load a Code segment.
+	 *
+	 * @param pair The resource data to load from.
+	 * @throws std::exception Errors on loading.
+	 */
+	CodeSegment(const Code0Segment &code0, const DataPair &pair) throw(std::exception);
+
+	/**
+	 * Output information about the segment header.
+	 *
+	 * @param out The stream to output to.
+	 */
+	void outputHeader(std::ostream &out) throw();
+private:
+	/**
+	 * Offset into the jump table.
+	 */
+	uint16 _jumpTableOffset;
+
+	/**
+	 * Number of exported functions in the jump table.
+	 */
+	uint16 _jumpTableEntries;
+};
+
+/**
  * Object representing a Macintosh m68k executable.
  */
 class Executable {

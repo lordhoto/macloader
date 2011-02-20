@@ -52,6 +52,24 @@ void Executable::outputInfo(std::ostream &out) throw() {
 	assert(_code0.get() != nullptr);
 	_code0->outputHeader(out);
 	_code0->outputJumptable(out);
+
+	std::vector<uint16> idArray = _resFork.getIDArray(kCodeTag);
+	for (uint i = 0, size = idArray.size(); i < size; ++i) {
+		if (idArray[i] == 0)
+			continue;
+
+		DataPair *data = _resFork.getResource(kCodeTag, idArray[i]);
+
+		try {
+			CodeSegment segment(*_code0, *data);
+			out << "CODE " << idArray[i] << " segment:\n";
+			segment.outputHeader(out);
+		} catch (std::exception &e) {
+			out << "CODE " << idArray[i] << " segment failed to load.\n";
+		}
+
+		destroy(data);
+	}
 }
 
 Code0Segment::Code0Segment(const DataPair &data) throw(std::exception)
@@ -103,5 +121,23 @@ void Code0Segment::outputJumptable(std::ostream &out) throw() {
 	}
 
 	out << "\n" << std::flush;
+}
+
+CodeSegment::CodeSegment(const Code0Segment &code0, const DataPair &data) throw(std::exception)
+    : _jumpTableOffset(0), _jumpTableEntries(0) {
+	// A valid code segment must at least contain the header data
+	if (data.length < 4)
+		throw std::runtime_error("CODE segment contains only " + boost::lexical_cast<std::string>(data.length) + " bytes");
+
+	// Read the header
+	_jumpTableOffset = READ_UINT16_BE(data.data + 0);
+	_jumpTableEntries = READ_UINT16_BE(data.data + 2);
+}
+
+void CodeSegment::outputHeader(std::ostream &out) throw() {
+	out << "CODE header\n"
+	    << "===========\n"
+	    << "Offset to first entry in jump table: " << _jumpTableOffset << "\n"
+	    << "Number of exported functions: " << _jumpTableEntries << "\n" << std::endl;
 }
 
