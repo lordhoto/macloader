@@ -27,6 +27,8 @@
 #include <ostream>
 #include <vector>
 #include <memory>
+#include <map>
+#include <boost/shared_ptr.hpp>
 
 struct JumpTableEntry {
 	byte rawData[8];
@@ -120,6 +122,11 @@ public:
 	 * @param out The stream to output to.
 	 */
 	void outputHeader(std::ostream &out) throw();
+
+	/**
+	 * Query the size of the whole segment.
+	 */
+	uint32 getSegmentSize() const { return _data.length; }
 private:
 	/**
 	 * The id of the segment.
@@ -166,6 +173,14 @@ public:
 	 * @param out The stream where to output to.
 	 */
 	void outputInfo(std::ostream &out) throw();
+
+	/**
+	 * Output a memory dump of the executable to the given file.
+	 *
+	 * @param filename The file to save the dump to.
+	 * @throws std::exception Errors on dumping.
+	 */
+	void writeMemoryDump(const std::string &filename) throw(std::exception);
 private:
 	/**
 	 * The resource fork data.
@@ -176,6 +191,21 @@ private:
 	 * The Code 0 segment.
 	 */
 	std::auto_ptr<Code0Segment> _code0;
+
+	/**
+	 * The segment container.
+	 */
+	typedef std::map<uint16, boost::shared_ptr<CodeSegment> > CodeSegmentMap;
+
+	/**
+	 * ALl the other code segments.
+	 */
+	CodeSegmentMap _codeSegments;
+
+	/**
+	 * The size of all code segments.
+	 */
+	uint32 _codeSegmentsSize;
 };
 
 #endif

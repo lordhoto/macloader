@@ -23,11 +23,12 @@
 #include <cstring>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
+#include <boost/make_shared.hpp>
 
 const uint32 kCodeTag = 0x434F4445;
 
 Executable::Executable(const std::string &filename) throw(std::exception)
-    : _resFork(), _code0() {
+    : _resFork(), _code0(), _codeSegments() {
 	// Try to load the resource fork of the given file
 	if (!_resFork.load(filename.c_str()))
 		throw std::runtime_error("Could not load file " + filename);
@@ -46,6 +47,31 @@ Executable::Executable(const std::string &filename) throw(std::exception)
 	}
 
 	destroy(data);
+
+	// Load all other segments
+	std::vector<uint16> idArray = _resFork.getIDArray(kCodeTag);
+	_codeSegmentsSize = 0;
+
+	for (uint i = 0, size = idArray.size(); i < size; ++i) {
+		// Segment 0 is loaded already, thus skip it
+		if (idArray[i] == 0)
+			continue;
+
+		const uint16 id = idArray[i];
+		DataPair *data = _resFork.getResource(kCodeTag, id);
+		if (data == nullptr)
+			throw std::runtime_error("Failed to load CODE segment " + boost::lexical_cast<std::string>(id));
+
+		try {
+			boost::shared_ptr<CodeSegment> seg = _codeSegments[id] = boost::make_shared<CodeSegment>(*_code0, id, _resFork.getFilename(kCodeTag, id), *data);
+			_codeSegmentsSize += seg->getSegmentSize();
+		} catch (std::exception &e) {
+			destroy(data);
+			throw std::runtime_error("CODE segment " + boost::lexical_cast<std::string>(id) + " loading error: " + e.what());
+		}
+
+		destroy(data);
+	}
 }
 
 void Executable::outputInfo(std::ostream &out) throw() {
@@ -53,22 +79,11 @@ void Executable::outputInfo(std::ostream &out) throw() {
 	_code0->outputHeader(out);
 	_code0->outputJumptable(out);
 
-	std::vector<uint16> idArray = _resFork.getIDArray(kCodeTag);
-	for (uint i = 0, size = idArray.size(); i < size; ++i) {
-		if (idArray[i] == 0)
-			continue;
+	for (CodeSegmentMap::const_iterator i = _codeSegments.begin(), end = _codeSegments.end(); i != end; ++i)
+		i->second->outputHeader(out);
+}
 
-		DataPair *data = _resFork.getResource(kCodeTag, idArray[i]);
-
-		try {
-			CodeSegment segment(*_code0, idArray[i], _resFork.getFilename(kCodeTag, idArray[i]), *data);
-			segment.outputHeader(out);
-		} catch (std::exception &e) {
-			out << "CODE " << idArray[i] << " segment failed to load.\n";
-		}
-
-		destroy(data);
-	}
+void Executable::writeMemoryDump(const std::string &filename) throw(std::exception) {
 }
 
 Code0Segment::Code0Segment(const DataPair &data) throw(std::exception)
