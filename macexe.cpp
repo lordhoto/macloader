@@ -24,6 +24,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/foreach.hpp>
 
 const uint32 kCodeTag = 0x434F4445;
 
@@ -52,12 +53,11 @@ Executable::Executable(const std::string &filename) throw(std::exception)
 	std::vector<uint16> idArray = _resFork.getIDArray(kCodeTag);
 	_codeSegmentsSize = 0;
 
-	for (uint i = 0, size = idArray.size(); i < size; ++i) {
+	BOOST_FOREACH(uint16 id, idArray) {
 		// Segment 0 is loaded already, thus skip it
-		if (idArray[i] == 0)
+		if (id == 0)
 			continue;
 
-		const uint16 id = idArray[i];
 		DataPair *data = _resFork.getResource(kCodeTag, id);
 		if (data == nullptr)
 			throw std::runtime_error("Failed to load CODE segment " + boost::lexical_cast<std::string>(id));
@@ -79,8 +79,8 @@ void Executable::outputInfo(std::ostream &out) throw() {
 	_code0->outputHeader(out);
 	_code0->outputJumptable(out);
 
-	for (CodeSegmentMap::const_iterator i = _codeSegments.begin(), end = _codeSegments.end(); i != end; ++i)
-		i->second->outputHeader(out);
+	BOOST_FOREACH(const CodeSegmentMap::value_type &i, _codeSegments)
+		i.second->outputHeader(out);
 }
 
 void Executable::writeMemoryDump(const std::string &filename) throw(std::exception) {
