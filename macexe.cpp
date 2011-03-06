@@ -158,6 +158,7 @@ CodeSegment::CodeSegment(const Code0Segment &code0, const uint id, const std::st
 
 void CodeSegment::outputHeader(std::ostream &out) const throw() {
 	out << "CODE" << _id << " \"" << _name << "\" header\n"
+	    << "Segment size: " << _data.length << "\n"
 	    << "===========\n"
 	    << "Offset to first entry in jump table: " << _jumpTableOffset << "\n"
 	    << "Number of exported functions: " << _jumpTableEntries << "\n" << std::endl;
