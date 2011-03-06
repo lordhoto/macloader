@@ -33,8 +33,10 @@ typedef int32_t int32;
 typedef uint32_t uint32;
 typedef unsigned int uint;
 
-uint16 READ_UINT16_BE(byte *data);
-uint32 READ_UINT32_BE(byte *data);
+uint16 READ_UINT16_BE(const byte *data);
+uint32 READ_UINT32_BE(const byte *data);
+void WRITE_UINT16_BE(byte *p, uint16 data);
+void WRITE_UINT32_BE(byte *p, uint32 data);
 
 byte readByte(FILE *file);
 uint16 readUint16LE(FILE *file);

@@ -81,10 +81,21 @@ uint32 getFileSize(FILE *file) {
 	return size;
 }
 
-uint16 READ_UINT16_BE(byte *data) {
+uint16 READ_UINT16_BE(const byte *data) {
 	return (*data << 8) | *(data + 1);
 }
 
-uint32 READ_UINT32_BE(byte *data) {
+uint32 READ_UINT32_BE(const byte *data) {
 	return (READ_UINT16_BE(data) << 16) | READ_UINT16_BE(data + 2);
 }
+
+void WRITE_UINT16_BE(byte *p, uint16 data) {
+	p[0] = data >> 8;
+	p[1] = data & 0xFF;
+}
+
+void WRITE_UINT32_BE(byte *p, uint32 data) {
+	WRITE_UINT16_BE(p, data >> 16);
+	WRITE_UINT16_BE(p + 2, data & 0xFFFF);
+}
+
