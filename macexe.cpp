@@ -89,9 +89,9 @@ void Executable::outputInfo(std::ostream &out) const throw() {
 		i.second->outputHeader(out);
 }
 
-void Executable::writeMemoryDump(const std::string &filename) throw(std::exception) {
+void Executable::writeMemoryDump(const std::string &filename, std::ostream &outInfo) throw(std::exception) {
 	// Load the executable
-	loadIntoMemory();
+	loadIntoMemory(outInfo);
 
 	std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
 	if (!out)
@@ -105,7 +105,7 @@ void Executable::writeMemoryDump(const std::string &filename) throw(std::excepti
 	_memory = nullptr;
 }
 
-void Executable::loadIntoMemory() throw(std::exception) {
+void Executable::loadIntoMemory(std::ostream &out) throw(std::exception) {
 	// Allocate enough memory for the executable
 	delete[] _memory;
 	_memorySize = _code0->getSegmentSize() + _codeSegmentsSize;
@@ -114,6 +114,11 @@ void Executable::loadIntoMemory() throw(std::exception) {
 	// The current offset in the memory dump
 	uint32 offset = _code0->getSegmentSize();
 
+	// Output the a5 base address
+	out << boost::format("A5 base is at 0x%1$08X\n") % _code0->getApplicationGlobalsSize()
+	    << boost::format("Jump table starts at 0x%1$08X\n") % (_code0->getApplicationGlobalsSize() + _code0->getApplicationParametersSize())
+	    << boost::format("Number of jump table entries %1$d\n") % _code0->getJumpTableEntryCount();
+
 	// Load all the segments
 	BOOST_FOREACH(const CodeSegmentMap::value_type &i, _codeSegments) {
 		// Load the segment
@@ -121,6 +126,9 @@ void Executable::loadIntoMemory() throw(std::exception) {
 
 		// Adjust offset for the next entry
 		offset += i.second->getSegmentSize();
+
+		// Output information about the segment
+		out << boost::format("Segment %1$d \"%2$s\" starts at offset 0x%3$08X\n") % i.first % i.second->getName() % offset;
 	}
 
 	// Finally load the CODE0 segment

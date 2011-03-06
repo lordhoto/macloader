@@ -28,6 +28,6 @@ int main(int argc, char *argv[]) {
 	Executable exe(argv[1]);
 	exe.outputInfo(std::cout);
 	if (argc >= 3)
-		exe.writeMemoryDump(argv[2]);
+		exe.writeMemoryDump(argv[2], std::cout);
 }
 

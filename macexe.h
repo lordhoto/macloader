@@ -98,6 +98,11 @@ public:
 	uint32 getJumpTableSize() const { return _jumpTableSize; }
 
 	/**
+	 * Query the number of jump table entries.
+	 */
+	uint32 getJumpTableEntryCount() const { return _jumpTable.size(); }
+
+	/**
 	 * Query the size of the globals.
 	 */
 	uint32 getApplicationGlobalsSize() const { return _applicationGlobalsSize; }
@@ -179,6 +184,11 @@ public:
 	void outputHeader(std::ostream &out) const throw();
 
 	/**
+	 * Query the segment name.
+	 */
+	const std::string &getName() const { return _name; }
+
+	/**
 	 * Query the size of the whole segment.
 	 */
 	uint32 getSegmentSize() const { return _data.length; }
@@ -248,14 +258,17 @@ public:
 	 * Output a memory dump of the executable to the given file.
 	 *
 	 * @param filename The file to save the dump to.
+	 * @param out Where to output misc loading information.
 	 * @throws std::exception Errors on dumping.
 	 */
-	void writeMemoryDump(const std::string &filename) throw(std::exception);
+	void writeMemoryDump(const std::string &filename, std::ostream &out) throw(std::exception);
 private:
 	/**
 	 * Load the executable into memory.
+	 *
+	 * @param out Where to output misc loading information.
 	 */
-	void loadIntoMemory() throw(std::exception);
+	void loadIntoMemory(std::ostream &out) throw(std::exception);
 
 	/**
 	 * The resource fork data.
