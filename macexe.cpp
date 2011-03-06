@@ -74,7 +74,7 @@ Executable::Executable(const std::string &filename) throw(std::exception)
 	}
 }
 
-void Executable::outputInfo(std::ostream &out) throw() {
+void Executable::outputInfo(std::ostream &out) const throw() {
 	assert(_code0.get() != nullptr);
 	_code0->outputHeader(out);
 	_code0->outputJumptable(out);
@@ -113,7 +113,7 @@ Code0Segment::Code0Segment(const DataPair &data) throw(std::exception)
 	}
 }
 
-void Code0Segment::outputHeader(std::ostream &out) throw() {
+void Code0Segment::outputHeader(std::ostream &out) const throw() {
 	out << "CODE0 header\n"
 	    << "============\n"
 	    << "Size above A5: " << _sizeAboveA5 << "\n"
@@ -122,7 +122,7 @@ void Code0Segment::outputHeader(std::ostream &out) throw() {
 	    << "Jump table offset: " << _jumpTableOffset << "\n" << std::endl;
 }
 
-void Code0Segment::outputJumptable(std::ostream &out) throw() {
+void Code0Segment::outputJumptable(std::ostream &out) const throw() {
 	out << "Jump table information\n"
 	    << "======================\n"
 	    << "Entries: " << _jumpTable.size() << "\n";
@@ -156,7 +156,7 @@ CodeSegment::CodeSegment(const Code0Segment &code0, const uint id, const std::st
 		throw std::runtime_error("CODE segment specifies " + boost::lexical_cast<std::string>(_jumpTableEntries) + " entries but the CODE0 jump table only contains " + boost::lexical_cast<std::string>((code0.getJumpTableSize() - _jumpTableOffset) / 8) + " entries after the jump table entry offset");
 }
 
-void CodeSegment::outputHeader(std::ostream &out) throw() {
+void CodeSegment::outputHeader(std::ostream &out) const throw() {
 	out << "CODE" << _id << " \"" << _name << "\" header\n"
 	    << "===========\n"
 	    << "Offset to first entry in jump table: " << _jumpTableOffset << "\n"

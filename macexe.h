@@ -52,14 +52,14 @@ public:
 	 *
 	 * @param out The stream to output to.
 	 */
-	void outputHeader(std::ostream &out) throw();
+	void outputHeader(std::ostream &out) const throw();
 
 	/**
 	 * Output information about the jump table.
 	 *
 	 * @param out The stream to output to.
 	 */
-	void outputJumptable(std::ostream &out) throw();
+	void outputJumptable(std::ostream &out) const throw();
 
 	/**
 	 * Query the size of the jump table.
@@ -121,7 +121,7 @@ public:
 	 *
 	 * @param out The stream to output to.
 	 */
-	void outputHeader(std::ostream &out) throw();
+	void outputHeader(std::ostream &out) const throw();
 
 	/**
 	 * Query the size of the whole segment.
@@ -172,7 +172,7 @@ public:
 	 *
 	 * @param out The stream where to output to.
 	 */
-	void outputInfo(std::ostream &out) throw();
+	void outputInfo(std::ostream &out) const throw();
 
 	/**
 	 * Output a memory dump of the executable to the given file.
