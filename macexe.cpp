@@ -21,6 +21,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <fstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 #include <boost/make_shared.hpp>
@@ -29,7 +30,7 @@
 const uint32 kCodeTag = 0x434F4445;
 
 Executable::Executable(const std::string &filename) throw(std::exception)
-    : _resFork(), _code0(), _codeSegments() {
+    : _resFork(), _code0(), _codeSegments(), _memory(nullptr), _memorySize(0) {
 	// Try to load the resource fork of the given file
 	if (!_resFork.load(filename.c_str()))
 		throw std::runtime_error("Could not load file " + filename);
@@ -74,6 +75,11 @@ Executable::Executable(const std::string &filename) throw(std::exception)
 	}
 }
 
+Executable::~Executable() {
+	delete[] _memory;
+	_memory = nullptr;
+}
+
 void Executable::outputInfo(std::ostream &out) const throw() {
 	assert(_code0.get() != nullptr);
 	_code0->outputHeader(out);
@@ -84,6 +90,41 @@ void Executable::outputInfo(std::ostream &out) const throw() {
 }
 
 void Executable::writeMemoryDump(const std::string &filename) throw(std::exception) {
+	// Load the executable
+	loadIntoMemory();
+
+	std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
+	if (!out)
+		throw std::runtime_error("Could not open file " + filename + " for writing");
+	out.write(reinterpret_cast<const char *>(_memory), _memorySize);
+	out.flush();
+	out.close();
+
+	// Free the memory
+	delete[] _memory;
+	_memory = nullptr;
+}
+
+void Executable::loadIntoMemory() throw(std::exception) {
+	// Allocate enough memory for the executable
+	delete[] _memory;
+	_memorySize = _code0->getSegmentSize() + _codeSegmentsSize;
+	_memory = new uint8[_memorySize];
+
+	// The current offset in the memory dump
+	uint32 offset = _code0->getSegmentSize();
+
+	// Load all the segments
+	BOOST_FOREACH(const CodeSegmentMap::value_type &i, _codeSegments) {
+		// Load the segment
+		i.second->loadIntoMemory(*_code0, _memory, offset, _memorySize);
+
+		// Adjust offset for the next entry
+		offset += i.second->getSegmentSize();
+	}
+
+	// Finally load the CODE0 segment
+	_code0->loadIntoMemory(_memory, _memorySize);
 }
 
 Code0Segment::Code0Segment(const DataPair &data) throw(std::exception)
@@ -137,6 +178,24 @@ void Code0Segment::outputJumptable(std::ostream &out) const throw() {
 	out << "\n" << std::flush;
 }
 
+void Code0Segment::loadIntoMemory(uint8 *memory, uint32 size) const throw(std::exception) {
+	if (size < getSegmentSize())
+		throw std::runtime_error("CODE segment has size " + boost::lexical_cast<std::string>(getSegmentSize()) + ", but the memory only has a size of " + boost::lexical_cast<std::string>(size));
+
+	// Zero space for the application globals and the application parameters.
+	std::memset(memory, 0, _applicationGlobalsSize);
+	std::memset(memory + _applicationGlobalsSize, 0, _jumpTableOffset);
+
+	// Move to jump table start
+	memory += _applicationGlobalsSize + _jumpTableOffset;
+
+	// Write the jump table to the memory dump
+	BOOST_FOREACH(const JumpTableEntry &entry, _jumpTable) {
+		std::memcpy(memory, entry.rawData, 8);
+		memory += 8;
+	}
+}
+
 CodeSegment::CodeSegment(const Code0Segment &code0, const uint id, const std::string &name, const DataPair &data) throw(std::exception)
     : _id(id), _name(name), _jumpTableOffset(0), _jumpTableEntries(0), _data(data) {
 	// A valid code segment must at least contain the header data
@@ -162,5 +221,53 @@ void CodeSegment::outputHeader(std::ostream &out) const throw() {
 	    << "===========\n"
 	    << "Offset to first entry in jump table: " << _jumpTableOffset << "\n"
 	    << "Number of exported functions: " << _jumpTableEntries << "\n" << std::endl;
+}
+
+void CodeSegment::loadIntoMemory(Code0Segment &code0, uint8 *memory, uint32 offset, uint32 size) const throw(std::exception) {
+	if (size - offset < getSegmentSize())
+		throw std::runtime_error("CODE segment has size " + boost::lexical_cast<std::string>(getSegmentSize()) + ", but the memory only has a size of " + boost::lexical_cast<std::string>(size));
+
+	// Write the segment data to the memory
+	std::memcpy(memory + offset, _data.data, _data.length);
+
+	// Adjust the jump table
+	for (uint i = 0; i < _jumpTableEntries; ++i) {
+		const uint entryNum = i + _jumpTableOffset / 8;
+
+		try {
+			JumpTableEntry &entry = code0.getJumpTableEntry(entryNum);
+
+			// Check whether the entry is loaded already
+			if (entry.isLoaded())
+				throw std::runtime_error("Jump table entry " + boost::lexical_cast<std::string>(entryNum) + " is loaded already");
+
+			// Check whether we are the segment the entry references
+			if (entry.getSegmentID() != _id)
+				throw std::runtime_error("Jump table entry " + boost::lexical_cast<std::string>(entryNum) + " references segment " + boost::lexical_cast<std::string>(entry.getSegmentID()) + " and not segment " + boost::lexical_cast<std::string>(_id));
+
+			// Adjust the entry, we add 4 here, since we also copy the CODE segment header into the dump
+			entry.load(offset + 4);
+		} catch (std::exception &exception) {
+			throw std::runtime_error(std::string("CODE segment could not load: ") + exception.what());
+		}
+	}
+}
+
+void JumpTableEntry::load(uint32 offset) {
+	// In case the segment is load already we ignore the request
+	if (isLoaded())
+		return;
+
+	// Read the function offset
+	const uint16 functionOffset = READ_UINT16_BE(rawData + 0);
+
+	// Caclulate the real offset
+	offset += functionOffset;
+
+	// Write the JMP instruction
+	WRITE_UINT16_BE(rawData + 2, 0x4EF9);
+
+	// Write the offset
+	WRITE_UINT32_BE(rawData + 4, offset);
 }
 

@@ -32,6 +32,25 @@
 
 struct JumpTableEntry {
 	byte rawData[8];
+
+	/**
+	 * Check whether the referenced segment is load or not.
+	 */
+	bool isLoaded() const { return READ_UINT16_BE(rawData + 6) != 0xA9F0; }
+
+	/**
+	 * Query the referenced segment ID of the entry.
+	 *
+	 * This only returns a correct segment ID, when the entry is not yet load.
+	 */
+	uint16 getSegmentID() const { return READ_UINT16_BE(rawData + 4); }
+
+	/**
+	 * Adjust the entry on segment load.
+	 *
+	 * @param offset The base offset of the segment.
+	 */
+	void load(uint32 offset);
 };
 
 /**
@@ -62,9 +81,45 @@ public:
 	void outputJumptable(std::ostream &out) const throw();
 
 	/**
+	 * Write the segment into memory.
+	 *
+	 * This will first make zeroed space for the global variables, then make
+	 * space for the application parameters and last but not least write the
+	 * jump table.
+	 *
+	 * @param memory Where to write to.
+	 * @param size Size of the memory.
+	 */
+	void loadIntoMemory(uint8 *memory, uint32 size) const throw(std::exception);
+
+	/**
 	 * Query the size of the jump table.
 	 */
 	uint32 getJumpTableSize() const { return _jumpTableSize; }
+
+	/**
+	 * Query the size of the globals.
+	 */
+	uint32 getApplicationGlobalsSize() const { return _applicationGlobalsSize; }
+
+	/**
+	 * Query the application parameter size.
+	 */
+	uint32 getApplicationParametersSize() const { return _jumpTableOffset; }
+
+	/**
+	 * Query the size of the whole segment.
+	 */
+	uint32 getSegmentSize() const {
+		return _jumpTableSize + _applicationGlobalsSize + _jumpTableOffset;
+	}
+
+	/**
+	 * Query a jump table entry.
+	 */
+	JumpTableEntry &getJumpTableEntry(int entry) throw(std::exception) {
+		return _jumpTable.at(entry);
+	}
 private:
 	/**
 	 * The jump table vector.
@@ -127,6 +182,16 @@ public:
 	 * Query the size of the whole segment.
 	 */
 	uint32 getSegmentSize() const { return _data.length; }
+
+	/**
+	 * Write the segment into memory.
+	 *
+	 * @param code0 CODE0 Segement containing the jump table.
+	 * @param memory Where to write to.
+	 * @param offset The offset into the memory.
+	 * @param size Size of the memory.
+	 */
+	void loadIntoMemory(Code0Segment &code0, uint8 *memory, uint32 offset, uint32 size) const throw(std::exception);
 private:
 	/**
 	 * The id of the segment.
@@ -168,6 +233,11 @@ public:
 	Executable(const std::string &filename) throw(std::exception);
 
 	/**
+	 * Destructor of the Executable object.
+	 */
+	~Executable();
+
+	/**
 	 * Output information about the loaded file.
 	 *
 	 * @param out The stream where to output to.
@@ -182,6 +252,11 @@ public:
 	 */
 	void writeMemoryDump(const std::string &filename) throw(std::exception);
 private:
+	/**
+	 * Load the executable into memory.
+	 */
+	void loadIntoMemory() throw(std::exception);
+
 	/**
 	 * The resource fork data.
 	 */
@@ -206,6 +281,16 @@ private:
 	 * The size of all code segments.
 	 */
 	uint32 _codeSegmentsSize;
+
+	/**
+	 * The memory dump.
+	 */
+	uint8 *_memory;
+
+	/**
+	 * Size of the memory dump.
+	 */
+	uint32 _memorySize;
 };
 
 #endif
