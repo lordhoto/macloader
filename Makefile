@@ -8,9 +8,11 @@ BIN := macloader
 $(BIN): $(OBJECTS)
 	$(CXX) $+ -o $@
 
+-include $(wildcard $(addsuffix /*.d,$(DEPDIR)))
+
 %.o: %.cpp
-	$(MKDIR) $(*D)/$(DEPDIR)
-	$(CXX) -MMD -MF "$(*D)/$(DEPDIR)/$(*F).d" -MQ "$@" -MP $(CXXFLAGS) -c $(<) -o $*.o
+	$(MKDIR) $(DEPDIR)
+	$(CXX) -MMD -MF "$(DEPDIR)/$(*F).d" -MQ "$@" -MP $(CXXFLAGS) -c $(<) -o $*.o
 
 clean:
 	rm -f $(BIN)
