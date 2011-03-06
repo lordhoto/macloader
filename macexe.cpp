@@ -144,6 +144,8 @@ Code0Segment::Code0Segment(const DataPair &data) throw(std::exception)
 		throw std::runtime_error("CODE 0 segment has invalid jump table size " + boost::lexical_cast<std::string>(_jumpTableSize));
 	if (_sizeAboveA5 != _jumpTableSize + _jumpTableOffset)
 		throw std::runtime_error("CODE 0 segment has invalid above a5 size " + boost::lexical_cast<std::string>(_sizeAboveA5));
+	if (getSegmentSize() % 2 != 0)
+		throw std::runtime_error("CODE 0 segment has odd size " + boost::lexical_cast<std::string>(getSegmentSize()));
 
 	// Load the jump table
 	_jumpTable.resize(_jumpTableSize / 8);
@@ -213,6 +215,8 @@ CodeSegment::CodeSegment(const Code0Segment &code0, const uint id, const std::st
 		throw std::runtime_error("CODE segment specifies offset " + boost::lexical_cast<std::string>(_jumpTableOffset) + " into jump table, but the CODE0 jump table only has size " + boost::lexical_cast<std::string>(code0.getJumpTableSize()));
 	if ((uint32)(_jumpTableOffset + _jumpTableEntries * 8) > code0.getJumpTableSize())
 		throw std::runtime_error("CODE segment specifies " + boost::lexical_cast<std::string>(_jumpTableEntries) + " entries but the CODE0 jump table only contains " + boost::lexical_cast<std::string>((code0.getJumpTableSize() - _jumpTableOffset) / 8) + " entries after the jump table entry offset");
+	if (data.length % 2 != 0)
+		throw std::runtime_error("CODE segment has odd size " + boost::lexical_cast<std::string>(data.length));
 }
 
 void CodeSegment::outputHeader(std::ostream &out) const throw() {
