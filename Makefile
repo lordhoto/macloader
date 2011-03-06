@@ -10,7 +10,7 @@ $(BIN): $(OBJECTS)
 
 %.o: %.cpp
 	$(MKDIR) $(*D)/$(DEPDIR)
-	$(CXX) -MMD -MF "$(*D)/$(DEPDIR)/$(*F).d" -MQ "$@" -MP $(CPPFLAGS) -c $(<) -o $*.o
+	$(CXX) -MMD -MF "$(*D)/$(DEPDIR)/$(*F).d" -MQ "$@" -MP $(CXXFLAGS) -c $(<) -o $*.o
 
 clean:
 	rm -f $(BIN)
