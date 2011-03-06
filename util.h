@@ -54,7 +54,7 @@ const int nullptr = 0;
 template<class T>
 inline void destroy(T *&t) {
 	delete t;
-	t = 0;
+	t = nullptr;
 }
 
 #endif
