@@ -110,7 +110,7 @@ void Executable::loadIntoMemory(std::ostream &out) throw(std::exception) {
 	delete[] _memory;
 	_memorySize = _code0->getSegmentSize() + _codeSegmentsSize;
 	_memory = new uint8[_memorySize];
-	memset(_memory, 0, _memorySize);
+	std::memset(_memory, 0, _memorySize);
 
 	// The current offset in the memory dump
 	uint32 offset = _code0->getSegmentSize();
@@ -214,7 +214,7 @@ void Executable::uncompressA5World(uint8 *dst, const uint8 *src) throw() {
 
 		do {
 			dst += offset;
-			memcpy(dst, src, size);
+			std::memcpy(dst, src, size);
 			dst += size;
 			src += size;
 		} while (--loops);
