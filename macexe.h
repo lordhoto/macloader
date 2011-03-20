@@ -23,6 +23,7 @@
 #include "macresfork.h"
 #include "jumptable.h"
 #include "code0.h"
+#include "code.h"
 
 #include <stdexcept>
 #include <string>
@@ -30,75 +31,6 @@
 #include <memory>
 #include <map>
 #include <boost/shared_ptr.hpp>
-
-/**
- * Any code segement different to CODE 0
- */
-class CodeSegment {
-public:
-	/**
-	 * Load a Code segment.
-	 *
-	 * @param code0 The code 0 segement.
-	 * @param id The id of the code segment.
-	 * @param name The name of the code segment.
-	 * @param pair The resource data to load from.
-	 * @throws std::exception Errors on loading.
-	 */
-	CodeSegment(const Code0Segment &code0, const uint id, const std::string &name, const DataPair &pair) throw(std::exception);
-
-	/**
-	 * Output information about the segment header.
-	 *
-	 * @param out The stream to output to.
-	 */
-	void outputHeader(std::ostream &out) const throw();
-
-	/**
-	 * Query the segment name.
-	 */
-	const std::string &getName() const { return _name; }
-
-	/**
-	 * Query the size of the whole segment.
-	 */
-	uint32 getSegmentSize() const { return _data.length; }
-
-	/**
-	 * Write the segment into memory.
-	 *
-	 * @param code0 CODE0 Segement containing the jump table.
-	 * @param memory Where to write to.
-	 * @param offset The offset into the memory.
-	 * @param size Size of the memory.
-	 */
-	void loadIntoMemory(Code0Segment &code0, uint8 *memory, uint32 offset, uint32 size) const throw(std::exception);
-private:
-	/**
-	 * The id of the segment.
-	 */
-	const uint _id;
-
-	/**
-	 * The name of the segment.
-	 */
-	const std::string _name;
-
-	/**
-	 * Offset into the jump table.
-	 */
-	uint16 _jumpTableOffset;
-
-	/**
-	 * Number of exported functions in the jump table.
-	 */
-	uint16 _jumpTableEntries;
-
-	/**
-	 * The segment data.
-	 */
-	DataPair _data;
-};
 
 /**
  * Object representing a Macintosh m68k executable.
