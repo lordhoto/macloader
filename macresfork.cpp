@@ -184,6 +184,7 @@ bool ResourceFork::loadInternal(uint32 startOffset) {
 				fread(subFilename, 1, stringLength, _file);
 	
 				id.filename = subFilename;
+				delete[] subFilename;
 
 				if (j != idCount - 1)
 					fseek(_file, lastIDPos, SEEK_SET);
