@@ -2,7 +2,7 @@ CXX ?= g++
 CXXFLAGS ?= -Wall -g
 MKDIR ?= mkdir -p
 DEPDIR ?= .deps
-OBJECTS := macexe.o macresfork.o util.o main.o
+OBJECTS := macexe.o macresfork.o jumptable.o util.o main.o
 BIN := macloader
 
 $(BIN): $(OBJECTS)

@@ -21,6 +21,7 @@
 #define MACEXE_H
 
 #include "macresfork.h"
+#include "jumptable.h"
 
 #include <stdexcept>
 #include <string>
@@ -29,29 +30,6 @@
 #include <memory>
 #include <map>
 #include <boost/shared_ptr.hpp>
-
-struct JumpTableEntry {
-	byte rawData[8];
-
-	/**
-	 * Check whether the referenced segment is load or not.
-	 */
-	bool isLoaded() const { return READ_UINT16_BE(rawData + 6) != 0xA9F0; }
-
-	/**
-	 * Query the referenced segment ID of the entry.
-	 *
-	 * This only returns a correct segment ID, when the entry is not yet load.
-	 */
-	uint16 getSegmentID() const { return READ_UINT16_BE(rawData + 4); }
-
-	/**
-	 * Adjust the entry on segment load.
-	 *
-	 * @param offset The base offset of the segment.
-	 */
-	void load(uint32 offset);
-};
 
 /**
  * The Code 0 segment of a Macintosh m68k executable.
