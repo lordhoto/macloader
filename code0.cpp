@@ -39,7 +39,7 @@ Code0Segment::Code0Segment(const DataPair &data) throw(std::exception)
 	if (_jumpTableSize % 8 != 0)
 		throw std::runtime_error("CODE 0 segment has invalid jump table size " + boost::lexical_cast<std::string>(_jumpTableSize));
 	if (_sizeAboveA5 != _jumpTableSize + _jumpTableOffset)
-		throw std::runtime_error("CODE 0 segment has invalid above a5 size " + boost::lexical_cast<std::string>(_sizeAboveA5));
+		throw std::runtime_error("CODE 0 segment has invalid above a5 size " + boost::lexical_cast<std::string>(_sizeAboveA5) + " != " + boost::lexical_cast<std::string>(_jumpTableSize) + " + " + boost::lexical_cast<std::string>(_jumpTableOffset));
 	if (getSegmentSize() % 2 != 0)
 		throw std::runtime_error("CODE 0 segment has odd size " + boost::lexical_cast<std::string>(getSegmentSize()));
 
