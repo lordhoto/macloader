@@ -36,8 +36,14 @@ void writeJumpMarkTableScript(const Executable &exe, const std::string &baseFile
 	       "static main() {\n"
 	       "\tauto num = " << code0.getJumpTableEntryCount() << ";\n"
 	    << boost::format("\tauto jumpOffset = 0x%1$08X;\n") % code0.getJumpTableOffset()
-	    << boost::format("\tauto a5offset = 0x%1$08X;\n") % code0.getApplicationGlobalsSize()
+	    << boost::format("\tauto a5Offset = 0x%1$08X;\n") % code0.getApplicationGlobalsSize()
 	    << "\t\n"
+	       "\t// Name the jump table properly\n"
+	       "\tMakeNameEx(jumpOffset, \"sys_jumpTable\", 0);\n"
+	       "\t\n"
+	       "\t// Name the a5 base offset properly\n"
+	       "\tMakeNameEx(a5Offset, \"sys_a5Base\", 0);\n"
+	       "\t\n"
 	       "\tauto i;\n"
 	       "\tfor (i = 0; i < num; ++i) {\n"
 	       "\t\t// Calculate the jumptable entry offset\n"
