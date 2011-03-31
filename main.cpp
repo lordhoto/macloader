@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 	exe.outputInfo(std::cout);
 	if (argc >= 3) {
 		exe.writeMemoryDump(argv[2], std::cout);
-		IDC::writeJumpMarkTableScript(exe, argv[2]);
+		IDC::writeMemDumpInitScript(exe, argv[2]);
 	}
 }
 

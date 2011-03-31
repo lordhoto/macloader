@@ -24,10 +24,12 @@
 
 namespace IDC {
 
-void writeJumpMarkTableScript(const Executable &exe, const std::string &baseFilename) throw(std::exception) {
-	std::ofstream out((baseFilename + "_jt.idc").c_str());
+void writeMemDumpInitScript(const Executable &exe, const std::string &baseFilename) throw(std::exception) {
+	const std::string filename = baseFilename + "_init.idc";
+
+	std::ofstream out(filename.c_str());
 	if (!out)
-		throw std::runtime_error("Could not open file \"" + baseFilename + "_jt.idc\" for writing");
+		throw std::runtime_error("Could not open file \"" + filename + "\" for writing");
 
 	const Code0Segment &code0 = exe.getCode0Segment();
 

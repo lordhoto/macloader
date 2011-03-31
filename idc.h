@@ -28,12 +28,12 @@
 namespace IDC {
 
 /**
- * Create the jump table marking script for IDA Pro.
+ * Create the memory dump initialization script for IDA Pro.
  *
  * @param exe The executable to write the script for.
  * @param baseFilename The base filename.
  */
-void writeJumpMarkTableScript(const Executable &exe, const std::string &baseFilename) throw(std::exception);
+void writeMemDumpInitScript(const Executable &exe, const std::string &baseFilename) throw(std::exception);
 
 } // End of namespace IDC
 
