@@ -65,6 +65,11 @@ public:
 	 * @throws std::exception Errors on dumping.
 	 */
 	void writeMemoryDump(const std::string &filename, std::ostream &out) throw(std::exception);
+
+	/**
+	 * Query the CODE0 segment.
+	 */
+	const Code0Segment &getCode0Segment() const { return *_code0; }
 private:
 	/**
 	 * Load the executable into memory.

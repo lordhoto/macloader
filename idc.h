@@ -17,20 +17,25 @@
  *
  */
 
+#ifndef IDC_H
+#define IDC_H
+
 #include "macexe.h"
-#include "idc.h"
 
-#include <iostream>
+#include <string>
+#include <stdexcept>
 
-int main(int argc, char *argv[]) {
-	if (argc < 2)
-		return -1;
+namespace IDC {
 
-	Executable exe(argv[1]);
-	exe.outputInfo(std::cout);
-	if (argc >= 3) {
-		exe.writeMemoryDump(argv[2], std::cout);
-		IDC::writeJumpMarkTableScript(exe, argv[2]);
-	}
-}
+/**
+ * Create the jump table marking script for IDA Pro.
+ *
+ * @param exe The executable to write the script for.
+ * @param baseFilename The base filename.
+ */
+void writeJumpMarkTableScript(const Executable &exe, const std::string &baseFilename) throw(std::exception);
+
+} // End of namespace IDC
+
+#endif
 
