@@ -87,6 +87,11 @@ public:
 	uint32 getApplicationParametersSize() const { return _jumpTableOffset; }
 
 	/**
+	 * Query the offset of the jump table in the output dump.
+	 */
+	uint32 getJumpTableOffset() const { return _applicationGlobalsSize + _jumpTableOffset; }
+
+	/**
 	 * Query the size of the whole segment.
 	 */
 	uint32 getSegmentSize() const {

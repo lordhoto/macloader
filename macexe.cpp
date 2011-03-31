@@ -117,7 +117,7 @@ void Executable::loadIntoMemory(std::ostream &out) throw(std::exception) {
 
 	// Output the a5 base address
 	out << boost::format("A5 base is at 0x%1$08X\n") % _code0->getApplicationGlobalsSize()
-	    << boost::format("Jump table starts at 0x%1$08X\n") % (_code0->getApplicationGlobalsSize() + _code0->getApplicationParametersSize())
+	    << boost::format("Jump table starts at 0x%1$08X\n") % _code0->getJumpTableOffset()
 	    << boost::format("Number of jump table entries %1$d\n") % _code0->getJumpTableEntryCount();
 
 	// Load all the segments
