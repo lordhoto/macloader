@@ -35,13 +35,13 @@ void writeJumpMarkTableScript(const Executable &exe, const std::string &baseFile
 	       "\n"
 	       "static main() {\n"
 	       "\tauto num = " << code0.getJumpTableEntryCount() << ";\n"
-	    << boost::format("\tauto offset = 0x%1$08X;\n") % code0.getJumpTableOffset()
+	    << boost::format("\tauto jumpOffset = 0x%1$08X;\n") % code0.getJumpTableOffset()
 	    << boost::format("\tauto a5offset = 0x%1$08X;\n") % code0.getApplicationGlobalsSize()
 	    << "\t\n"
 	       "\tauto i;\n"
 	       "\tfor (i = 0; i < num; ++i) {\n"
 	       "\t\t// Calculate the jumptable entry offset\n"
-	       "\t\tauto entryOff = offset + i * 8;\n"
+	       "\t\tauto entryOff = jumpOffset + i * 8;\n"
 	       "\n"
 	       "\t\t// Mark offset entry as dword\n"
 	       "\t\tMakeDword(entryOff + 4);\n"
