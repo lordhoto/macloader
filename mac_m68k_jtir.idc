@@ -19,10 +19,9 @@
 #include <idc.idc>
 
 static main() {
-	auto a5Base, jumpTableOffset, address;
+	auto a5Base, address;
 
 	a5Base = LocByName("sys_a5Base");
-	jumpTableOffset = LocByName("sys_jumpTable");
 
 	address = 0;
 
