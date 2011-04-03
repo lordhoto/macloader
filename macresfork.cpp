@@ -32,9 +32,6 @@ ResourceFork::~ResourceFork() {
 }
 
 bool ResourceFork::load(const char *filename) {
-	if (loadFromRawFork(filename))
-		return true;
-	
 	if (loadFromMacBaseFilename(filename))
 		return true;
 
@@ -42,6 +39,9 @@ bool ResourceFork::load(const char *filename) {
 		return true;
 
 	if (loadFromAppleDouble(filename))
+		return true;
+
+	if (loadFromRawFork(filename))
 		return true;
 
 	return false;
