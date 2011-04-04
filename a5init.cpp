@@ -83,6 +83,9 @@ void A5InitLoader::load(const uint32 offset, const uint32 size, std::ostream &ou
 
 	// relocate the world
 	relocateWorld(code0.getApplicationGlobalsSize(), dst, memory + offset + infoOffset + relocationDataOffset, out);
+
+	// Mark segment as initialized
+	WRITE_UINT16_BE(memory + offset + infoOffset + 4, 0);
 }
 
 void A5InitLoader::uncompressA5World(uint8 *dst, const uint8 *src) const throw() {
