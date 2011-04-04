@@ -120,6 +120,8 @@ void A5InitLoader::uncompressA5World(uint8 *dst, const uint8 *src) throw() {
 }
 
 uint32 A5InitLoader::getRunLength(const uint8 *&src, uint32 &special) throw() {
+	assert(src != nullptr);
+
 	uint32 rl = *src++;
 
 	if (!(rl & 0x80)) {
