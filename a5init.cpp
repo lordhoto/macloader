@@ -85,7 +85,7 @@ void A5InitLoader::load(const uint32 offset, const uint32 size, std::ostream &ou
 	relocateWorld(code0.getApplicationGlobalsSize(), dst, memory + offset + infoOffset + relocationDataOffset, out);
 }
 
-void A5InitLoader::uncompressA5World(uint8 *dst, const uint8 *src) throw() {
+void A5InitLoader::uncompressA5World(uint8 *dst, const uint8 *src) const throw() {
 	assert(dst != nullptr);
 	assert(src != nullptr);
 
@@ -119,7 +119,7 @@ void A5InitLoader::uncompressA5World(uint8 *dst, const uint8 *src) throw() {
 	}
 }
 
-uint32 A5InitLoader::getRunLength(const uint8 *&src, uint32 &special) throw() {
+uint32 A5InitLoader::getRunLength(const uint8 *&src, uint32 &special) const throw() {
 	assert(src != nullptr);
 
 	uint32 rl = *src++;
@@ -149,7 +149,7 @@ uint32 A5InitLoader::getRunLength(const uint8 *&src, uint32 &special) throw() {
 	}
 }
 
-void A5InitLoader::relocateWorld(const uint32 a5, uint8 *dst, const uint8 *src, std::ostream &out) throw() {
+void A5InitLoader::relocateWorld(const uint32 a5, uint8 *dst, const uint8 *src, std::ostream &out) const throw() {
 	assert(dst != nullptr);
 	assert(src != nullptr);
 

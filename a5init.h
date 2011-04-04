@@ -63,7 +63,7 @@ private:
 	 * @param dst Where to store the data.
 	 * @param src Where the compressed data lies.
 	 */
-	void uncompressA5World(uint8 *dst, const uint8 *src) throw();
+	void uncompressA5World(uint8 *dst, const uint8 *src) const throw();
 
 	/**
 	 * Get the run length from the given address.
@@ -72,7 +72,7 @@ private:
 	 * @param special Special repeat counter.
 	 * @return The decoded run length.
 	 */
-	uint32 getRunLength(const uint8 *&src, uint32 &special) throw();
+	uint32 getRunLength(const uint8 *&src, uint32 &special) const throw();
 
 	/**
 	 * Relocate the world data.
@@ -82,7 +82,7 @@ private:
 	 * @param src Where the relocation data lies.
 	 * @param out Where to output misc loading information.
 	 */
-	void relocateWorld(const uint32 a5, uint8 *dst, const uint8 *src, std::ostream &out) throw();
+	void relocateWorld(const uint32 a5, uint8 *dst, const uint8 *src, std::ostream &out) const throw();
 };
 
 #endif
