@@ -32,6 +32,9 @@
 #include <map>
 #include <boost/shared_ptr.hpp>
 
+// Forward from staticdata.h
+class StaticDataLoaderManager;
+
 /**
  * Object representing a Macintosh m68k executable.
  */
@@ -70,6 +73,16 @@ public:
 	 * Query the CODE0 segment.
 	 */
 	const Code0Segment &getCode0Segment() const { return *_code0; }
+
+	/**
+	 * Query the memory dump.
+	 */
+	byte *getMemory() { return _memory; }
+
+	/**
+	 * Query the memory dump size.
+	 */
+	uint32 getMemorySize() const { return _memorySize; }
 private:
 	/**
 	 * Load the executable into memory.
@@ -77,41 +90,6 @@ private:
 	 * @param out Where to output misc loading information.
 	 */
 	void loadIntoMemory(std::ostream &out) throw(std::exception);
-
-	/**
-	 * Uncompresses the a5 world from the %A5Init segment.
-	 *
-	 * @param offset The offset where the %A5Init segment starts.
-	 * @param out Where to output misc loading information.
-	 */
-	void uncompressA5World(uint32 offset, std::ostream &out) throw(std::exception);
-
-	/**
-	 * Do the real world uncompression.
-	 *
-	 * @param dst Where to store the data.
-	 * @param src Where the compressed data lies.
-	 */
-	void uncompressA5World(uint8 *dst, const uint8 *src) throw();
-
-	/**
-	 * Get the run length from the given address.
-	 *
-	 * @param src Where to read from.
-	 * @param special Special repeat counter.
-	 * @return The decoded run length.
-	 */
-	uint32 getRunLength(const uint8 *&src, uint32 &special) throw();
-
-	/**
-	 * Relocate the world data.
-	 *
-	 * @param a5 A5 base offset.
-	 * @param dst Destination start.
-	 * @param src Where the relocation data lies.
-	 * @param out Where to output misc loading information.
-	 */
-	void relocateWorld(const uint32 a5, uint8 *dst, const uint8 *src, std::ostream &out) throw();
 
 	/**
 	 * The resource fork data.
@@ -147,6 +125,11 @@ private:
 	 * Size of the memory dump.
 	 */
 	uint32 _memorySize;
+
+	/**
+	 * The static data loader manager.
+	 */
+	StaticDataLoaderManager *_loaderManager;
 };
 
 #endif

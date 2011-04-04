@@ -18,6 +18,7 @@
  */
 
 #include "macexe.h"
+#include "staticdata.h"
 
 #include <cassert>
 #include <cstring>
@@ -30,7 +31,9 @@
 const uint32 kCodeTag = 0x434F4445;
 
 Executable::Executable(const std::string &filename) throw(std::exception)
-    : _resFork(), _code0(), _codeSegments(), _memory(nullptr), _memorySize(0) {
+    : _resFork(), _code0(), _codeSegments(), _memory(nullptr), _memorySize(0), _loaderManager(nullptr) {
+	_loaderManager = new StaticDataLoaderManager(*this);
+
 	// Try to load the resource fork of the given file
 	if (!_resFork.load(filename.c_str()))
 		throw std::runtime_error("Could not load file " + filename);
@@ -76,6 +79,7 @@ Executable::Executable(const std::string &filename) throw(std::exception)
 }
 
 Executable::~Executable() {
+	destroy(_loaderManager);
 	delete[] _memory;
 	_memory = nullptr;
 }
@@ -128,14 +132,8 @@ void Executable::loadIntoMemory(std::ostream &out) throw(std::exception) {
 		// Output information about the segment
 		out << boost::format("Segment %1$d \"%2$s\" starts at offset 0x%3$08X\n") % i.first % i.second->getName() % offset;
 
-		// In case we load the A5 initialization segment, we will uncompress it
-		if (i.second->getName() == "%A5Init") {
-			try {
-				uncompressA5World(offset, out);
-			} catch (std::exception &e) {
-				out << "Could not load %A5Init segment: " << e.what() << std::endl;
-			}
-		}
+		// Try to load static data from the segment
+		_loaderManager->loadFromSegment(i.second->getName(), offset, i.second->getSegmentSize(), out);
 
 		// Adjust offset for the next entry
 		offset += i.second->getSegmentSize();
@@ -143,152 +141,5 @@ void Executable::loadIntoMemory(std::ostream &out) throw(std::exception) {
 
 	// Finally load the CODE0 segment
 	_code0->loadIntoMemory(_memory, _memorySize);
-}
-
-void Executable::uncompressA5World(uint32 offset, std::ostream &out) throw(std::exception) {
-	// Check whether we have an supported A5 segment
-	if (READ_UINT16_BE(_memory + offset + 2) != 0x0001)
-		throw std::runtime_error("A5 segment invalid: Invalid exported function count");
-
-	const uint32 infoOffset = READ_UINT16_BE(_memory + offset + 10) + 10;
-
-	if (offset + infoOffset + 16 >= _memorySize)
-		throw std::runtime_error("A5 segment invalid: Invalid info offset " + boost::lexical_cast<std::string>(infoOffset));
-
-	const uint32 dataSize = READ_UINT32_BE(_memory + offset + infoOffset + 0);
-	const uint16 needLoadBit = READ_UINT16_BE(_memory + offset + infoOffset + 4);
-	const uint32 dataOffset = READ_UINT32_BE(_memory + offset + infoOffset + 8);
-	const uint32 relocationDataOffset = READ_UINT32_BE(_memory + offset + infoOffset + 12);
-
-	if (offset + dataOffset >= _memorySize)
-		throw std::runtime_error("A5 segment invalid: Invalid data offset " + boost::lexical_cast<std::string>(dataOffset));
-	if (offset + relocationDataOffset >= _memorySize)
-		throw std::runtime_error("A5 segment invalid: Invalid relocation data offset " + boost::lexical_cast<std::string>(relocationDataOffset));
-
-	// Output various information about the %A5Init segment
-	out << "%A5Init info data:\n"
-	       "\tData size: " << dataSize << "\n"
-	       "\tNeed to load: " << needLoadBit << "\n"
-	       "\tData offset: " << dataOffset << "\n"
-	       "\tRelocation offset: " << relocationDataOffset << std::endl;
-
-	// Check whether we actually have to do some work
-	if (needLoadBit != 1) {
-		out << "A5 data does not need any initialization" << std::endl;
-		return;
-	}
-
-	uint8 *dst = _memory + _code0->getApplicationGlobalsSize() - dataSize;
-
-	// uncompress the world
-	uncompressA5World(dst, _memory + offset + infoOffset + dataOffset);
-
-	// relocate the world
-	relocateWorld(_code0->getApplicationGlobalsSize(), dst, _memory + offset + infoOffset + relocationDataOffset, out);
-}
-
-void Executable::uncompressA5World(uint8 *dst, const uint8 *src) throw() {
-	assert(dst != nullptr);
-	assert(src != nullptr);
-
-	while (true) {
-		uint32 loops = 1;
-		uint32 size = *src++;
-		uint32 offset = size;
-
-		size &= 0x0F;
-		if (!size) {
-			size = getRunLength(src, loops);
-
-			if (!size)
-				return;
-		} else {
-			size += size;
-		}
-
-		offset &= 0xF0;
-		if (!offset)
-			offset = getRunLength(src, loops);
-		else
-			offset >>= 3;
-
-		do {
-			dst += offset;
-			std::memcpy(dst, src, size);
-			dst += size;
-			src += size;
-		} while (--loops);
-	}
-}
-
-uint32 Executable::getRunLength(const uint8 *&src, uint32 &special) throw() {
-	uint32 rl = *src++;
-
-	if (!(rl & 0x80)) {
-		return rl;
-	} else if (!(rl & 0x40)) {
-		rl &= 0x3F;
-		rl <<= 8;
-		rl |= *src++;
-		return rl;
-	} else if (!(rl & 0x20)) {
-		rl &= 0x1F;
-		rl <<= 8;
-		rl |= *src++;
-		rl <<= 8;
-		rl |= *src++;
-		return rl;
-	} else if (!(rl & 0x10)) {
-		rl = READ_UINT32_BE(src);
-		src += 4;
-		return rl;
-	} else {
-		rl = getRunLength(src, special);
-		special = getRunLength(src, special);
-		return rl;
-	}
-}
-
-void Executable::relocateWorld(const uint32 a5, uint8 *dst, const uint8 *src, std::ostream &out) throw() {
-	assert(dst != nullptr);
-	assert(src != nullptr);
-
-	uint32 dummy = 0;
-
-	while (true) {
-		uint32 loops = 1;
-		uint32 offset = *src++;
-
-		if (offset) {
-			if (offset & 0x80) {
-				offset &= 0x7F;
-				offset <<= 8;
-				offset |= *src++;
-			}
-		} else {
-			offset = *src++;
-			if (!offset)
-				return;
-
-			if (offset & 0x80) {
-				offset <<= 8;
-				offset |= *src++;
-				offset <<= 8;
-				offset |= *src++;
-				offset <<= 8;
-				offset |= *src++;
-			} else {
-				loops = getRunLength(src, dummy);
-			}
-		}
-
-		offset += offset;
-
-		do {
-			dst += offset;
-			out << boost::format("Relocation at 0x%1$08X\n") % (dst - _memory);
-			WRITE_UINT32_BE(dst, READ_UINT32_BE(dst) + a5);
-		} while (--loops);
-	}
 }
 
