@@ -23,7 +23,7 @@
 #include <boost/format.hpp>
 
 CodeSegment::CodeSegment(const Code0Segment &code0, const uint id, const std::string &name, const DataPair &data) throw(std::exception)
-    : _id(id), _name(name), _jumpTableOffset(0), _jumpTableEntries(0), _data(data) {
+    : _id(id), _name(name), _jumpTableOffset(0), _jumpTableEntries(0), _data(data), _segmentSize(0) {
 	// A valid code segment must at least contain the header data
 	if (data.length < 4)
 		throw std::runtime_error("CODE segment contains only " + boost::lexical_cast<std::string>(data.length) + " bytes");
@@ -39,13 +39,15 @@ CodeSegment::CodeSegment(const Code0Segment &code0, const uint id, const std::st
 		throw std::runtime_error("CODE segment specifies offset " + boost::lexical_cast<std::string>(_jumpTableOffset) + " into jump table, but the CODE0 jump table only has size " + boost::lexical_cast<std::string>(code0.getJumpTableSize()));
 	if ((uint32)(_jumpTableOffset + _jumpTableEntries * 8) > code0.getJumpTableSize())
 		throw std::runtime_error("CODE segment specifies " + boost::lexical_cast<std::string>(_jumpTableEntries) + " entries but the CODE0 jump table only contains " + boost::lexical_cast<std::string>((code0.getJumpTableSize() - _jumpTableOffset) / 8) + " entries after the jump table entry offset");
-	if (data.length % 2 != 0)
-		throw std::runtime_error("CODE segment has odd size " + boost::lexical_cast<std::string>(data.length));
+
+	// Fix segment size in case it's odd
+	_segmentSize = _data.length + (_data.length & 1);
 }
 
 void CodeSegment::outputHeader(std::ostream &out) const throw() {
 	out << "CODE" << _id << " \"" << _name << "\" header\n"
-	    << "Segment size: " << _data.length << "\n"
+	    << "Real segment size: " << _data.length << "\n"
+	    << "Loaded segment size: " << _segmentSize << "\n"
 	    << "===========\n"
 	    << "Offset to first entry in jump table: " << _jumpTableOffset << "\n"
 	    << "Number of exported functions: " << _jumpTableEntries << "\n" << std::endl;
@@ -57,6 +59,12 @@ void CodeSegment::loadIntoMemory(Code0Segment &code0, uint8 *memory, uint32 offs
 
 	// Write the segment data to the memory
 	std::memcpy(memory + offset, _data.data, _data.length);
+
+	// Add a padding zero in case we have an odd segment size
+	assert(_segmentSize >= _data.length);
+	assert(_segmentSize <= _data.length + 1);
+	if (_segmentSize > _data.length)
+		memory[offset + _data.length] = 0;
 
 	// Adjust the jump table
 	for (uint i = 0; i < _jumpTableEntries; ++i) {

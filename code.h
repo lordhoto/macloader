@@ -56,7 +56,7 @@ public:
 	/**
 	 * Query the size of the whole segment.
 	 */
-	uint32 getSegmentSize() const { return _data.length; }
+	uint32 getSegmentSize() const { return _segmentSize; }
 
 	/**
 	 * Write the segment into memory.
@@ -92,6 +92,11 @@ private:
 	 * The segment data.
 	 */
 	DataPair _data;
+
+	/**
+	 * The segment size.
+	 */
+	uint32 _segmentSize;
 };
 
 
