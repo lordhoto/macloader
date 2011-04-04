@@ -18,11 +18,13 @@
  */
 
 #include "staticdata.h"
+#include "a5init.h"
 
 #include <boost/foreach.hpp>
 
 StaticDataLoaderManager::StaticDataLoaderManager(Executable &exe) throw(std::exception)
     : _loaders() {
+	_loaders.push_back(new A5InitLoader(exe));
 }
 
 StaticDataLoaderManager::~StaticDataLoaderManager() {
