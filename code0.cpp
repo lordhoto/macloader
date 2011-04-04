@@ -38,8 +38,10 @@ Code0Segment::Code0Segment(const DataPair &data) throw(std::exception)
 	// Validate the header fields
 	if (_jumpTableSize % 8 != 0)
 		throw std::runtime_error("CODE 0 segment has invalid jump table size " + boost::lexical_cast<std::string>(_jumpTableSize));
-	if (_sizeAboveA5 != _jumpTableSize + _jumpTableOffset)
-		throw std::runtime_error("CODE 0 segment has invalid above a5 size " + boost::lexical_cast<std::string>(_sizeAboveA5) + " != " + boost::lexical_cast<std::string>(_jumpTableSize) + " + " + boost::lexical_cast<std::string>(_jumpTableOffset));
+	if (_sizeAboveA5 < _jumpTableSize + _jumpTableOffset)
+		throw std::runtime_error("CODE 0 segment has invalid above a5 size " + boost::lexical_cast<std::string>(_sizeAboveA5) + " < " + boost::lexical_cast<std::string>(_jumpTableSize) + " + " + boost::lexical_cast<std::string>(_jumpTableOffset));
+	if (_sizeAboveA5 > _jumpTableSize + _jumpTableOffset && _jumpTableSize != 8)
+		throw std::runtime_error("CODE 0 segment has an invalid partly initialized jump table size " + boost::lexical_cast<std::string>(_jumpTableSize));
 	if (getSegmentSize() % 2 != 0)
 		throw std::runtime_error("CODE 0 segment has odd size " + boost::lexical_cast<std::string>(getSegmentSize()));
 
@@ -49,6 +51,25 @@ Code0Segment::Code0Segment(const DataPair &data) throw(std::exception)
 		JumpTableEntry entry;
 		std::memcpy(entry.rawData, data.data + 16 + offset, 8);
 		_jumpTable[i] = entry;
+	}
+
+	// Check for a uninitialized jump table
+	if (_sizeAboveA5 > _jumpTableSize + _jumpTableOffset) {
+		_onlyFirstJumpTableEntryInitialized = true;
+
+		// Calculate the real jump table size
+		const uint32 jumpTableSize = _sizeAboveA5 - _jumpTableOffset;
+
+		if (jumpTableSize % 8 != 0)
+			throw std::runtime_error("CODE 0 segment has invalid (uninitialized) jump table size " + boost::lexical_cast<std::string>(_jumpTableSize));
+
+		// Add dummy entries to the jump table
+		_jumpTable.resize(jumpTableSize / 8);
+		for (uint32 i = 1, end = jumpTableSize / 8; i < end; ++i) {
+			JumpTableEntry entry;
+			std::memset(&entry, 0, sizeof(entry));
+			_jumpTable[i] = entry;
+		}
 	}
 }
 
@@ -64,6 +85,7 @@ void Code0Segment::outputHeader(std::ostream &out) const throw() {
 void Code0Segment::outputJumptable(std::ostream &out) const throw() {
 	out << "Jump table information\n"
 	    << "======================\n"
+	    << "Partly initialized jump table: " << (_onlyFirstJumpTableEntryInitialized ? "true" : "false") << "\n"
 	    << "Entries: " << _jumpTable.size() << "\n";
 
 	for (uint i = 0, offset = 16, size = _jumpTable.size(); i < size; ++i, offset += 8) {

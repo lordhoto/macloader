@@ -69,7 +69,7 @@ public:
 	/**
 	 * Query the size of the jump table.
 	 */
-	uint32 getJumpTableSize() const { return _jumpTableSize; }
+	uint32 getJumpTableSize() const { return _jumpTable.size() * 8; }
 
 	/**
 	 * Query the number of jump table entries.
@@ -95,7 +95,7 @@ public:
 	 * Query the size of the whole segment.
 	 */
 	uint32 getSegmentSize() const {
-		return _jumpTableSize + _applicationGlobalsSize + _jumpTableOffset;
+		return getJumpTableSize() + _applicationGlobalsSize + _jumpTableOffset;
 	}
 
 	/**
@@ -103,6 +103,13 @@ public:
 	 */
 	JumpTableEntry &getJumpTableEntry(int entry) throw(std::exception) {
 		return _jumpTable.at(entry);
+	}
+
+	/**
+	 * Query whether the jump table is partly uninitialized.
+	 */
+	bool isJumpTableUninitialized() const {
+		return _onlyFirstJumpTableEntryInitialized;
 	}
 private:
 	/**
@@ -117,9 +124,6 @@ private:
 
 	/**
 	 * Size above the A5 offset in bytes.
-	 * This should equal _jumpTableSize + _jumpTableOffset.
-	 * @see _jumpTableSize
-	 * @see _jumpTableOffset
 	 */
 	uint32 _sizeAboveA5;
 
@@ -137,6 +141,11 @@ private:
 	 * The offset from a5 of the jump table.
 	 */
 	uint32 _jumpTableOffset;
+
+	/**
+	 * Whether the jump table is partly uninitialized.
+	 */
+	bool _onlyFirstJumpTableEntryInitialized;
 };
 
 #endif
