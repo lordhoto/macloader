@@ -32,6 +32,11 @@ struct JumpTableEntry {
 	byte rawData[8];
 
 	/**
+	 * Check whether the entry is a dummy.
+	 */
+	bool isDummy() const;
+
+	/**
 	 * Check whether the referenced segment is load or not.
 	 */
 	bool isLoaded() const { return READ_UINT16_BE(rawData + 6) != 0xA9F0; }

@@ -19,6 +19,17 @@
 
 #include "jumptable.h"
 
+bool JumpTableEntry::isDummy() const {
+	return rawData[0] == 0
+	    && rawData[1] == 0
+	    && rawData[2] == 0
+	    && rawData[3] == 0
+	    && rawData[4] == 0
+	    && rawData[5] == 0
+	    && rawData[6] == 0
+	    && rawData[7] == 0;
+}
+
 void JumpTableEntry::load(uint32 offset) {
 	// In case the segment is load already we ignore the request
 	if (isLoaded())

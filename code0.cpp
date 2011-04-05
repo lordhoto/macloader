@@ -91,6 +91,9 @@ void Code0Segment::outputJumptable(std::ostream &out) const throw() {
 	for (uint i = 0, offset = 16, size = _jumpTable.size(); i < size; ++i, offset += 8) {
 		const JumpTableEntry &entry = _jumpTable[i];
 
+		if (entry.isDummy())
+			continue;
+
 		out << "Entry " << i << ": Raw: " << boost::format("%1$02X%2$02X%3$02X%4$02X%5$02X%6$02X%7$02X%8$02X") % (uint)entry.rawData[0] % (uint)entry.rawData[1] %
 		    (uint)entry.rawData[2] % (uint)entry.rawData[3] % (uint)entry.rawData[4] % (uint)entry.rawData[5] % (uint)entry.rawData[6] % (uint)entry.rawData[7] << "\n";
 	}

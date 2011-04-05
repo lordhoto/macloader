@@ -19,12 +19,14 @@
 
 #include "staticdata.h"
 #include "a5init.h"
+#include "data00.h"
 
 #include <boost/foreach.hpp>
 
 StaticDataLoaderManager::StaticDataLoaderManager(Executable &exe) throw(std::exception)
     : _loaders() {
 	_loaders.push_back(new A5InitLoader(exe));
+	_loaders.push_back(new Data00Loader(exe));
 }
 
 StaticDataLoaderManager::~StaticDataLoaderManager() {
@@ -37,9 +39,10 @@ StaticDataLoaderManager::~StaticDataLoaderManager() {
 
 bool StaticDataLoaderManager::loadFromSegment(const std::string &name, const uint32 offset, const uint32 size, std::ostream &out) throw(std::exception) {
 	BOOST_FOREACH(StaticDataLoader *loader, _loaders) {
+		loader->reset();
+
 		if (loader->isSupported(name, offset, size)) {
 			out << "Loading data from segment \"" << name << "\" with loader: \"" << loader->getName() << "\"\n";
-			loader->reset();
 			loader->load(offset, size, out);
 			return true;
 		}

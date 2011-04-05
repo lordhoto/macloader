@@ -70,6 +70,16 @@ public:
 	void writeMemoryDump(const std::string &filename, std::ostream &out) throw(std::exception);
 
 	/**
+	 * Query the resource fork.
+	 */
+	ResourceFork &getResourceFork() { return _resFork; }
+
+	/**
+	 * Query the CODE0 segment.
+	 */
+	Code0Segment &getCode0Segment() { return *_code0; }
+
+	/**
 	 * Query the CODE0 segment.
 	 */
 	const Code0Segment &getCode0Segment() const { return *_code0; }
