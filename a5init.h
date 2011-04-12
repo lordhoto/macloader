@@ -40,21 +40,22 @@ public:
 	/**
 	 * Check whether the segment is supported.
 	 *
-	 * @param name   Name of the segment.
+	 * @param code   The code segment.
 	 * @param offset Offset of the segment.
 	 * @param size   Size of the segment.
 	 * @return true in case it is supported, false otherwise.
 	 */
-	virtual bool isSupported(const std::string &name, const uint32 offset, const uint32 size) throw();
+	virtual bool isSupported(const CodeSegment &code, const uint32 offset, const uint32 size) throw();
 
 	/**
 	 * Load the static data.
 	 *
+	 * @param code   The code segment.
 	 * @param offset Offset of the segment which usually takes care of the loading.
 	 * @param size   Size of the segment.
 	 * @param out    Where to output additional loading information.
 	 */
-	virtual void load(const uint32 offset, const uint32 size, std::ostream &out) throw(std::exception);
+	virtual void load(const CodeSegment &code, const uint32 offset, const uint32 size, std::ostream &out) throw(std::exception);
 
 private:
 	/**

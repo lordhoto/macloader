@@ -37,13 +37,13 @@ StaticDataLoaderManager::~StaticDataLoaderManager() {
 	_loaders.clear();
 }
 
-bool StaticDataLoaderManager::loadFromSegment(const std::string &name, const uint32 offset, const uint32 size, std::ostream &out) throw(std::exception) {
+bool StaticDataLoaderManager::loadFromSegment(const CodeSegment &code, const uint32 offset, const uint32 size, std::ostream &out) throw(std::exception) {
 	BOOST_FOREACH(StaticDataLoader *loader, _loaders) {
 		loader->reset();
 
-		if (loader->isSupported(name, offset, size)) {
-			out << "Loading data from segment \"" << name << "\" with loader: \"" << loader->getName() << "\"\n";
-			loader->load(offset, size, out);
+		if (loader->isSupported(code, offset, size)) {
+			out << "Loading data from segment \"" << code.getName() << "\" with loader: \"" << loader->getName() << "\"\n";
+			loader->load(code, offset, size, out);
 			return true;
 		}
 	}

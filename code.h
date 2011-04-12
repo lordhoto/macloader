@@ -59,6 +59,11 @@ public:
 	uint32 getSegmentSize() const { return _segmentSize; }
 
 	/**
+	 * Query whether it is a special 32bit segment.
+	 */
+	bool is32BitSegment() const { return _is32BitSegment; }
+
+	/**
 	 * Write the segment into memory.
 	 *
 	 * @param code0 CODE0 Segement containing the jump table.
@@ -68,6 +73,46 @@ public:
 	 */
 	void loadIntoMemory(Code0Segment &code0, uint8 *memory, uint32 offset, uint32 size) const throw(std::exception);
 private:
+
+	/**
+	 * Initialize a standard segment.
+	 *
+	 * @param code0 CODE0 Segement containing the jump table.
+	 * @param memory Where to write to.
+	 * @param offset The offset into the memory.
+	 * @param size Size of the memory.
+	 */
+	void initialize(Code0Segment &code0, uint8 *memory, uint32 offset, uint32 size) const throw(std::exception);
+
+	/**
+	 * Initialize a 32bit segment.
+	 *
+	 * @param code0 CODE0 Segement containing the jump table.
+	 * @param memory Where to write to.
+	 * @param offset The offset into the memory.
+	 * @param size Size of the memory.
+	 */
+	void initialize32Bit(Code0Segment &code0, uint8 *memory, uint32 offset, uint32 size) const throw(std::exception);
+
+	/**
+	 * Adjust the jump table for a 32bit segment.
+	 *
+	 * @param code0 CODE0 Segment containing the jump table.
+	 * @param startOffset Start offset into the jump table.
+	 * @param count How many entries to process.
+	 * @param offset The offset into the memory.
+	 */
+	void initJumpTableBlock32Bit(Code0Segment &code0, uint32 startOffset, uint32 count, uint32 offset) const throw(std::exception);
+
+	/**
+	 * Relocate a 32bit segment.
+	 *
+	 * @param start Where the relocation should take place.
+	 * @param src Where the relocation data is located.
+	 * @param offset The offset to add.
+	 */
+	void relocate32Bit(uint8 *memory, const uint8 *src, int32 offset) const;
+
 	/**
 	 * The id of the segment.
 	 */
@@ -97,6 +142,11 @@ private:
 	 * The segment size.
 	 */
 	uint32 _segmentSize;
+
+	/**
+	 * Whether it's a special "32bit" segment.
+	 */
+	bool _is32BitSegment;
 };
 
 

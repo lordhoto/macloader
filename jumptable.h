@@ -42,11 +42,23 @@ struct JumpTableEntry {
 	bool isLoaded() const { return READ_UINT16_BE(rawData + 6) != 0xA9F0; }
 
 	/**
+	 * Check whether the referenced 32bit segment is load or not.
+	 */
+	bool isLoaded32Bit() const { return  READ_UINT16_BE(rawData + 2) != 0xA9F0; }
+
+	/**
 	 * Query the referenced segment ID of the entry.
 	 *
-	 * This only returns a correct segment ID, when the entry is not yet load.
+	 * This only returns a correct segment ID, when the entry is not yet loaded.
 	 */
 	uint16 getSegmentID() const { return READ_UINT16_BE(rawData + 4); }
+
+	/**
+	 * Query the referenced segment ID of the entry from a 32bit segment.
+	 *
+	 * This only returns a correct segment ID, when the entry is not yet loaded.
+	 */
+	uint16 getSegmentID32Bit() const { return READ_UINT16_BE(rawData + 0); }
 
 	/**
 	 * Adjust the entry on segment load.
@@ -54,6 +66,13 @@ struct JumpTableEntry {
 	 * @param offset The base offset of the segment.
 	 */
 	void load(uint32 offset);
+
+	/**
+	 * Load entry from an 32bit segment.
+	 *
+	 * @param offset The base offset of the segment.
+	 */
+	void load32Bit(uint32 offset);
 };
 
 #endif

@@ -33,7 +33,7 @@ void Data00Loader::reset() throw(std::exception) {
 	destroy(_data00);
 }
 
-bool Data00Loader::isSupported(const std::string &name, const uint32 offset, const uint32 size) throw() {
+bool Data00Loader::isSupported(const CodeSegment &code, const uint32 offset, const uint32 size) throw() {
 	const byte *memory = _executable.getMemory();
 	const uint32 memorySize = _executable.getMemorySize();
 
@@ -67,7 +67,7 @@ bool Data00Loader::isSupported(const std::string &name, const uint32 offset, con
 	return true;
 }
 
-void Data00Loader::load(const uint32 offset, const uint32 size, std::ostream &out) throw(std::exception) {
+void Data00Loader::load(const CodeSegment &code, const uint32 offset, const uint32 size, std::ostream &out) throw(std::exception) {
 	assert(_data00->data != nullptr);
 
 	// Uncompress the data

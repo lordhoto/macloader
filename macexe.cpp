@@ -133,7 +133,7 @@ void Executable::loadIntoMemory(std::ostream &out) throw(std::exception) {
 		out << boost::format("Segment %1$d \"%2$s\" starts at offset 0x%3$08X\n") % i.first % i.second->getName() % offset;
 
 		// Try to load static data from the segment
-		_loaderManager->loadFromSegment(i.second->getName(), offset, i.second->getSegmentSize(), out);
+		_loaderManager->loadFromSegment(*i.second, offset, i.second->getSegmentSize(), out);
 
 		// Adjust offset for the next entry
 		offset += i.second->getSegmentSize();

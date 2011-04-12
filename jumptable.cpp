@@ -48,3 +48,21 @@ void JumpTableEntry::load(uint32 offset) {
 	WRITE_UINT32_BE(rawData + 4, offset);
 }
 
+void JumpTableEntry::load32Bit(uint32 offset) {
+	// In case the segment is load already we ignore the request
+	if (isLoaded32Bit())
+		return;
+
+	// Read the function offset
+	const uint32 functionOffset = READ_UINT32_BE(rawData + 4);
+
+	// Caclulate the real offset
+	offset += functionOffset;
+
+	// Write the JMP instruction
+	WRITE_UINT16_BE(rawData + 2, 0x4EF9);
+
+	// Write the offset
+	WRITE_UINT32_BE(rawData + 4, offset);
+}
+

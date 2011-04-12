@@ -21,19 +21,22 @@
 
 #include <boost/format.hpp>
 
-bool A5InitLoader::isSupported(const std::string &name, const uint32 offset, const uint32 size) throw() {
+bool A5InitLoader::isSupported(const CodeSegment &code, const uint32 offset, const uint32 size) throw() {
 	// Check whether the name matches
-	if (name != "%A5Init")
+	if (code.getName() != "%A5Init")
 		return false;
 
 	const byte *memory = _executable.getMemory();
 	const uint32 memorySize = _executable.getMemorySize();
 
 	// Check whether it only exports one function
-	if (READ_UINT16_BE(memory + offset + 2) != 0x0001)
+	if (!code.is32BitSegment() && READ_UINT16_BE(memory + offset + 2) != 0x0001)
+		return false;
+	else if (READ_UINT32_BE(memory + offset + 8) != 0x00000001)
 		return false;
 
-	const uint32 infoOffset = READ_UINT16_BE(memory + offset + 10) + 10;
+	const uint32 internalOffset = (code.is32BitSegment() ? 46 : 10);
+	const uint32 infoOffset = READ_UINT16_BE(memory + offset + internalOffset) + internalOffset;
 
 	// Check whether the information area is still inside the memory dump
 	if (offset + infoOffset + 16 >= memorySize)
@@ -53,10 +56,11 @@ bool A5InitLoader::isSupported(const std::string &name, const uint32 offset, con
 	return true;
 }
 
-void A5InitLoader::load(const uint32 offset, const uint32 size, std::ostream &out) throw(std::exception) {
+void A5InitLoader::load(const CodeSegment &code, const uint32 offset, const uint32 size, std::ostream &out) throw(std::exception) {
 	byte *memory = _executable.getMemory();
 
-	const uint32 infoOffset = READ_UINT16_BE(memory + offset + 10) + 10;
+	const uint32 internalOffset = (code.is32BitSegment() ? 46 : 10);
+	const uint32 infoOffset = READ_UINT16_BE(memory + offset + internalOffset) + internalOffset;
 	const uint32 dataSize = READ_UINT32_BE(memory + offset + infoOffset + 0);
 	const uint16 needLoadBit = READ_UINT16_BE(memory + offset + infoOffset + 4);
 	const uint32 dataOffset = READ_UINT32_BE(memory + offset + infoOffset + 8);
